@@ -10,8 +10,11 @@ function create_directory_if_not_exists() {
     fi
 }
 
-# Перебор IP-адресов в диапазоне и выполнение действий
-for IP in $(seq -f '%.0f' $(echo $MikroTik_IP_START | tr '.' ' ') $(echo $MikroTik_IP_END | tr '.' ' ')); do
+# Файл с IP-адресами MikroTik
+MIKROTIK_IPS_FILE="mikrotik_ips.txt"
+
+# Перебор IP-адресов из файла и выполнение действий
+while IFS= read -r IP; do
     # Получение имени устройства
     IDENTITY=$(sshpass -p "$MikroTik_PASSWORD" ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $MikroTik_USERNAME@$IP '/system identity print value-name=name')
 
@@ -35,4 +38,4 @@ for IP in $(seq -f '%.0f' $(echo $MikroTik_IP_START | tr '.' ' ') $(echo $MikroT
     # Удаление временных файлов резервной копии
     sshpass -p "$MikroTik_PASSWORD" ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $MikroTik_USERNAME@$IP "/file remove $BACKUP_FILENAME"
     sshpass -p "$MikroTik_PASSWORD" ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $MikroTik_USERNAME@$IP "/file remove $EXPORT_FILENAME"
-done
+done < "$MIKROTIK_IPS_FILE"
